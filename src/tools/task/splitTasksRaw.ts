@@ -12,17 +12,17 @@ export const splitTasksRawSchema = z.object({
   updateMode: z
     .enum(["append", "overwrite", "selective", "clearAllTasks"])
     .describe(
-      "任務更新模式選擇：'append'(保留所有現有任務並添加新任務)、'overwrite'(清除所有未完成任務並完全替換，保留已完成任務)、'selective'(智能更新：根據任務名稱匹配更新現有任務，保留不在列表中的任務，推薦用於任務微調)、'clearAllTasks'(清除所有任務並創建備份)。\n預設為'clearAllTasks'模式，只有用戶要求變更或修改計劃內容才使用其他模式"
+      "Task update mode: 'append' (keep all existing tasks and add new ones), 'overwrite' (clear all unfinished tasks and completely replace, keep completed tasks), 'selective' (smart update: match and update existing tasks by name, keep tasks not in the list, recommended for fine-tuning), 'clearAllTasks' (clear all tasks and create backup). Default is 'clearAllTasks' mode, use other modes only if user requests change or plan modification."
     ),
   tasksRaw: z
     .string()
     .describe(
-      "結構化的任務清單，每個任務應保持原子性且有明確的完成標準，避免過於簡單的任務，簡單修改可與其他任務整合，避免任務過多，範例：[{name: '簡潔明確的任務名稱，應能清晰表達任務目的', description: '詳細的任務描述，包含實施要點、技術細節和驗收標準', implementationGuide: '此特定任務的具體實現方法和步驟，請參考之前的分析結果提供精簡pseudocode', notes: '補充說明、特殊處理要求或實施建議（選填）', dependencies: ['此任務依賴的前置任務完整名稱'], relatedFiles: [{path: '文件路徑', type: '文件類型 (TO_MODIFY: 待修改, REFERENCE: 參考資料, CREATE: 待建立, DEPENDENCY: 依賴文件, OTHER: 其他)', description: '文件描述', lineStart: 1, lineEnd: 100}], verificationCriteria: '此特定任務的驗證標準和檢驗方法'}, {name: '任務2', description: '任務2描述', implementationGuide: '任務2實現方法', notes: '補充說明、特殊處理要求或實施建議（選填）', dependencies: ['任務1'], relatedFiles: [{path: '文件路徑', type: '文件類型 (TO_MODIFY: 待修改, REFERENCE: 參考資料, CREATE: 待建立, DEPENDENCY: 依賴文件, OTHER: 其他)', description: '文件描述', lineStart: 1, lineEnd: 100}], verificationCriteria: '此特定任務的驗證標準和檢驗方法'}]"
+      "Structured task list. Each task should be atomic and have clear completion criteria. Avoid overly simple tasks; simple modifications can be combined with others. Avoid too many tasks. Example: [{name: 'Concise and clear task name, should clearly express the task purpose', description: 'Detailed task description, including implementation points, technical details, and acceptance criteria', implementationGuide: 'Specific implementation method and steps for this task, refer to previous analysis for concise pseudocode', notes: 'Additional notes, special handling requirements or implementation suggestions (optional)', dependencies: ['Full name of prerequisite tasks this task depends on'], relatedFiles: [{path: 'File path', type: 'File type (TO_MODIFY: to modify, REFERENCE: reference, CREATE: to create, DEPENDENCY: dependency, OTHER: other)', description: 'File description', lineStart: 1, lineEnd: 100}], verificationCriteria: 'Verification criteria and inspection method for this task'}, {name: 'Task 2', description: 'Task 2 description', implementationGuide: 'Task 2 implementation', notes: 'Additional notes, special handling requirements or implementation suggestions (optional)', dependencies: ['Task 1'], relatedFiles: [{path: 'File path', type: 'File type (TO_MODIFY: to modify, REFERENCE: reference, CREATE: to create, DEPENDENCY: dependency, OTHER: other)', description: 'File description', lineStart: 1, lineEnd: 100}], verificationCriteria: 'Verification criteria and inspection method for this task'}]"
     ),
   globalAnalysisResult: z
     .string()
     .optional()
-    .describe("任務最終目標，來自之前分析適用於所有任務的通用部分"),
+    .describe("Final task goal, from previous analysis, applies to all tasks as a common part"),
 });
 
 const tasksSchema = z
@@ -31,79 +31,79 @@ const tasksSchema = z
       name: z
         .string()
         .max(100, {
-          message: "任務名稱過長，請限制在100個字符以內",
+          message: "Task name too long, please limit to 100 characters or less",
         })
-        .describe("簡潔明確的任務名稱，應能清晰表達任務目的"),
+        .describe("Concise and clear task name, should clearly express the task purpose"),
       description: z
         .string()
         .min(10, {
-          message: "任務描述過短，請提供更詳細的內容以確保理解",
+          message: "Task description too short, please provide more details to ensure understanding",
         })
-        .describe("詳細的任務描述，包含實施要點、技術細節和驗收標準"),
+        .describe("Detailed task description, including implementation points, technical details, and acceptance criteria"),
       implementationGuide: z
         .string()
         .describe(
-          "此特定任務的具體實現方法和步驟，請參考之前的分析結果提供精簡pseudocode"
+          "Specific implementation method and steps for this task, refer to previous analysis for concise pseudocode"
         ),
       dependencies: z
         .array(z.string())
         .optional()
         .describe(
-          "此任務依賴的前置任務ID或任務名稱列表，支持兩種引用方式，名稱引用更直觀，是一個字串陣列"
+          "List of prerequisite task IDs or names this task depends on. Supports both reference methods. Name reference is more intuitive. It is a string array."
         ),
       notes: z
         .string()
         .optional()
-        .describe("補充說明、特殊處理要求或實施建議（選填）"),
+        .describe("Additional notes, special handling requirements or implementation suggestions (optional)"),
       relatedFiles: z
         .array(
           z.object({
             path: z
               .string()
               .min(1, {
-                message: "文件路徑不能為空",
+                message: "File path cannot be empty",
               })
-              .describe("文件路徑，可以是相對於項目根目錄的路徑或絕對路徑"),
+              .describe("File path, can be relative to project root or absolute path"),
             type: z
               .nativeEnum(RelatedFileType)
               .describe(
-                "文件類型 (TO_MODIFY: 待修改, REFERENCE: 參考資料, CREATE: 待建立, DEPENDENCY: 依賴文件, OTHER: 其他)"
+                "File type (TO_MODIFY: to modify, REFERENCE: reference, CREATE: to create, DEPENDENCY: dependency, OTHER: other)"
               ),
             description: z
               .string()
               .min(1, {
-                message: "文件描述不能為空",
+                message: "File description cannot be empty",
               })
-              .describe("文件描述，用於說明文件的用途和內容"),
+              .describe("File description, used to explain the purpose and content of the file"),
             lineStart: z
               .number()
               .int()
               .positive()
               .optional()
-              .describe("相關代碼區塊的起始行（選填）"),
+              .describe("Start line of related code block (optional)"),
             lineEnd: z
               .number()
               .int()
               .positive()
               .optional()
-              .describe("相關代碼區塊的結束行（選填）"),
+              .describe("End line of related code block (optional)"),
           })
         )
         .optional()
         .describe(
-          "與任務相關的文件列表，用於記錄與任務相關的代碼文件、參考資料、要建立的文件等（選填）"
+          "List of files related to the task, used to record code files, reference materials, files to be created, etc. (optional)"
         ),
       verificationCriteria: z
         .string()
         .optional()
-        .describe("此特定任務的驗證標準和檢驗方法"),
+        .describe("Verification criteria and inspection method for this task"),
     })
   )
   .min(1, {
-    message: "請至少提供一個任務",
+    message: "Please provide at least one task",
   })
   .describe(
-    "結構化的任務清單，每個任務應保持原子性且有明確的完成標準，避免過於簡單的任務，簡單修改可與其他任務整合，避免任務過多"
+    "Structured task list. Each task should be atomic and have clear completion criteria. Avoid overly simple tasks; simple modifications can be combined with others. Avoid too many tasks."
   );
 
 export async function splitTasksRaw({
@@ -120,7 +120,7 @@ export async function splitTasksRaw({
         {
           type: "text" as const,
           text:
-            "tasksRaw 參數格式錯誤，請確保格式正確，請嘗試修正錯誤，如果文本太長無法順利修復請分批呼叫，這樣可以避免訊息過長導致不好修正問題，錯誤訊息：" +
+            "tasksRaw parameter format error, please ensure correct format, please try to fix the error, if the text is too long to be repaired, please call in batches, this can avoid long messages causing problems to repair, error message: " +
             (error instanceof Error ? error.message : String(error)),
         },
       ],
@@ -136,7 +136,7 @@ export async function splitTasksRaw({
         {
           type: "text" as const,
           text:
-            "tasks 參數格式錯誤，請確保格式正確，錯誤訊息：" +
+            "tasks parameter format error, please ensure correct format, error message: " +
             tasksResult.error.message,
         },
       ],
@@ -152,7 +152,7 @@ export async function splitTasksRaw({
           content: [
             {
               type: "text" as const,
-              text: "tasks 參數中存在重複的任務名稱，請確保每個任務名稱是唯一的",
+              text: "tasks parameter exists duplicate task name, please ensure each task name is unique",
             },
           ],
         };
@@ -199,10 +199,10 @@ export async function splitTasksRaw({
             "append",
             globalAnalysisResult
           );
-          message += `\n成功創建了 ${createdTasks.length} 個新任務。`;
+          message += `\nSuccessfully created ${createdTasks.length} new tasks.`;
         } catch (error) {
           actionSuccess = false;
-          message += `\n創建新任務時發生錯誤: ${
+          message += `\nError occurred when creating new tasks: ${
             error instanceof Error ? error.message : String(error)
           }`;
         }
@@ -222,18 +222,18 @@ export async function splitTasksRaw({
         // 根據不同的更新模式生成消息
         switch (updateMode) {
           case "append":
-            message = `成功追加了 ${createdTasks.length} 個新任務。`;
+            message = `Successfully added ${createdTasks.length} new tasks.`;
             break;
           case "overwrite":
-            message = `成功清除未完成任務並創建了 ${createdTasks.length} 個新任務。`;
+            message = `Successfully cleared unfinished tasks and created ${createdTasks.length} new tasks.`;
             break;
           case "selective":
-            message = `成功選擇性更新/創建了 ${createdTasks.length} 個任務。`;
+            message = `Successfully selectively updated/created ${createdTasks.length} tasks.`;
             break;
         }
       } catch (error) {
         actionSuccess = false;
-        message = `任務創建失敗：${
+        message = `Task creation failed: ${
           error instanceof Error ? error.message : String(error)
         }`;
       }
@@ -274,7 +274,7 @@ export async function splitTasksRaw({
         {
           type: "text" as const,
           text:
-            "執行任務拆分時發生錯誤: " +
+            "An error occurred when executing task splitting: " +
             (error instanceof Error ? error.message : String(error)),
         },
       ],
