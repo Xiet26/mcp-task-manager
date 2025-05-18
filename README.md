@@ -1,6 +1,6 @@
 [English](README.md) | [中文](docs/zh/README.md)
 
-## 目錄
+## Table of Contents
 
 - [✨ Features](#features1)
 - [🧭 Usage Guide](#usage-guide)
@@ -168,7 +168,7 @@ Shrimp Task Manager offers two configuration methods: global configuration and p
       "command": "node",
       "args": ["/mcp-shrimp-task-manager/dist/index.js"],
       "env": {
-        "DATA_DIR": "/path/to/project/data", // 必須使用絕對路徑
+        "DATA_DIR": "/path/to/project/data", // Must use absolute path
         "TEMPLATES_USE": "en",
         "ENABLE_GUI": "false"
       }
