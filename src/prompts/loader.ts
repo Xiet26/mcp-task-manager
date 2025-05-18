@@ -26,24 +26,24 @@ function processEnvString(input: string | undefined): string {
  * @returns Final prompt content
  */
 export function loadPrompt(basePrompt: string, promptKey: string): string {
-  // 轉換為大寫，作為環境變數的一部分
+  // Convert to uppercase, used as part of the environment variable
   const envKey = promptKey.toUpperCase();
 
-  // 檢查是否有替換模式的環境變數
+  // Check if there is an override mode environment variable
   const overrideEnvVar = `MCP_PROMPT_${envKey}`;
   if (process.env[overrideEnvVar]) {
-    // 使用環境變數完全替換原始 prompt
+    // Use environment variable to completely override the original prompt
     return processEnvString(process.env[overrideEnvVar]);
   }
 
-  // 檢查是否有追加模式的環境變數
+  // Check if there is an append mode environment variable
   const appendEnvVar = `MCP_PROMPT_${envKey}_APPEND`;
   if (process.env[appendEnvVar]) {
-    // 將環境變數內容追加到原始 prompt 後
+    // Append environment variable content to the original prompt
     return `${basePrompt}\n\n${processEnvString(process.env[appendEnvVar])}`;
   }
 
-  // 如果沒有自定義，則使用原始 prompt
+  // If no customization, use the original prompt
   return basePrompt;
 }
 
@@ -57,15 +57,15 @@ export function generatePrompt(
   promptTemplate: string,
   params: Record<string, any> = {}
 ): string {
-  // 使用簡單的模板替換方法，將 {paramName} 替換為對應的參數值
+  // Use a simple template replacement method, replace {paramName} with the corresponding parameter value
   let result = promptTemplate;
 
   Object.entries(params).forEach(([key, value]) => {
-    // 如果值為 undefined 或 null，使用空字串替換
+    // If value is undefined or null, use empty string instead
     const replacementValue =
       value !== undefined && value !== null ? String(value) : "";
 
-    // 使用正則表達式替換所有匹配的佔位符
+    // Use regular expression to replace all matches of placeholders
     const placeholder = new RegExp(`\\{${key}\\}`, "g");
     result = result.replace(placeholder, replacementValue);
   });
@@ -85,11 +85,11 @@ export function loadPromptFromTemplate(templatePath: string): string {
   const builtInTemplatesBaseDir = __dirname;
 
   let finalPath = "";
-  const checkedPaths: string[] = []; // 用於更詳細的錯誤報告
+  const checkedPaths: string[] = []; // Used for more detailed error reporting
 
-  // 1. 檢查 DATA_DIR 中的自定義路徑
+  // 1. Check DATA_DIR for custom paths
   if (dataDir) {
-    // path.resolve 可以處理 templateSetName 是絕對路徑的情況
+    // path.resolve can handle the case where templateSetName is an absolute path
     const customFilePath = path.resolve(dataDir, templateSetName, templatePath);
     checkedPaths.push(`Custom: ${customFilePath}`);
     if (fs.existsSync(customFilePath)) {
@@ -97,9 +97,9 @@ export function loadPromptFromTemplate(templatePath: string): string {
     }
   }
 
-  // 2. 如果未找到自定義路徑，檢查特定的內建模板目錄
+  // 2. If custom path not found, check specific built-in template directory
   if (!finalPath) {
-    // 假設 templateSetName 對於內建模板是 'en', 'zh' 等
+    // Assume templateSetName for built-in templates is 'en', 'zh', etc.
     const specificBuiltInFilePath = path.join(
       builtInTemplatesBaseDir,
       `templates_${templateSetName}`,
@@ -111,7 +111,7 @@ export function loadPromptFromTemplate(templatePath: string): string {
     }
   }
 
-  // 3. 如果特定的內建模板也未找到，且不是 'en' (避免重複檢查)
+  // 3. If specific built-in template not found and not 'en' (avoid duplicate checks)
   if (!finalPath && templateSetName !== "en") {
     const defaultBuiltInFilePath = path.join(
       builtInTemplatesBaseDir,
@@ -124,7 +124,7 @@ export function loadPromptFromTemplate(templatePath: string): string {
     }
   }
 
-  // 4. 如果所有路徑都找不到模板，拋出錯誤
+  // 4. If all paths not found, throw error
   if (!finalPath) {
     throw new Error(
       `Template file not found: '${templatePath}' in template set '${templateSetName}'. Checked paths:\n - ${checkedPaths.join(
@@ -133,6 +133,6 @@ export function loadPromptFromTemplate(templatePath: string): string {
     );
   }
 
-  // 5. 讀取找到的文件
+  // 5. Read found file
   return fs.readFileSync(finalPath, "utf-8");
 }
