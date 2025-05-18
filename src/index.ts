@@ -55,16 +55,16 @@ async function main() {
     const ENABLE_GUI = process.env.ENABLE_GUI === "true";
 
     if (ENABLE_GUI) {
-      // 創建 Express 應用
+      // Create Express app
       const app = express();
 
-      // 儲存 SSE 客戶端的列表
+      // List of SSE clients
       let sseClients: Response[] = [];
 
-      // 發送 SSE 事件的輔助函數
+      // Helper function to send SSE events
       function sendSseUpdate() {
         sseClients.forEach((client) => {
-          // 檢查客戶端是否仍然連接
+          // Check if client is still connected
           if (!client.writableEnded) {
             client.write(
               `event: update\ndata: ${JSON.stringify({
@@ -73,16 +73,18 @@ async function main() {
             );
           }
         });
-        // 清理已斷開的客戶端 (可選，但建議)
+        // Clean up disconnected clients (optional, but recommended)
         sseClients = sseClients.filter((client) => !client.writableEnded);
       }
 
-      // 設置靜態文件目錄
+      // Set static file directory
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       const publicPath = path.join(__dirname, "public");
+      // Data directory path
       const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
-      const TASKS_FILE_PATH = path.join(DATA_DIR, "tasks.json"); // 提取檔案路徑
+      // Tasks file path
+      const TASKS_FILE_PATH = path.join(DATA_DIR, "tasks.json");
 
       app.use(express.static(publicPath));
 

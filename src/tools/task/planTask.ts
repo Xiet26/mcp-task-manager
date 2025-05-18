@@ -29,23 +29,23 @@ export async function planTask({
   requirements,
   existingTasksReference = false,
 }: z.infer<typeof planTaskSchema>) {
-  // 獲取基礎目錄路徑
+  // Get base directory path
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const PROJECT_ROOT = path.resolve(__dirname, "../../..");
   const DATA_DIR = process.env.DATA_DIR || path.join(PROJECT_ROOT, "data");
   const MEMORY_DIR = path.join(DATA_DIR, "memory");
 
-  // 準備所需參數
+  // Prepare required parameters
   let completedTasks: Task[] = [];
   let pendingTasks: Task[] = [];
 
-  // 當 existingTasksReference 為 true 時，從數據庫中載入所有任務作為參考
+  // If existingTasksReference is true, load all tasks from database as reference
   if (existingTasksReference) {
     try {
       const allTasks = await getAllTasks();
 
-      // 將任務分為已完成和未完成兩類
+      // Divide tasks into completed and pending
       completedTasks = allTasks.filter(
         (task) => task.status === TaskStatus.COMPLETED
       );
@@ -55,7 +55,7 @@ export async function planTask({
     } catch (error) {}
   }
 
-  // 使用prompt生成器獲取最終prompt
+  // Use prompt generator to get final prompt
   const prompt = getPlanTaskPrompt({
     description,
     requirements,
